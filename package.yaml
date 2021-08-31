@@ -1,0 +1,35 @@
+name:                hpc
+version:             0.1.0.0
+github:              "mduerig/hpc"
+license:             BSD3
+
+extra-source-files:
+- README.md
+
+dependencies:
+- base >= 4.7 && < 5
+
+library:
+  source-dirs: src
+
+executables:
+  hpc-exe:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - hpc
+
+tests:
+  hpc-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - hpc
