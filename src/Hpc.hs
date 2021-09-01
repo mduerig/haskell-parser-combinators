@@ -81,3 +81,17 @@ literal :: String -> Parser String
 literal = foldr op (success "")
     where
         op pc ps = (:) <$> char (== pc) <*> ps
+
+eps :: Monoid a => Parser a
+eps = success mempty
+
+optional :: Monoid a => Parser a -> Parser a
+optional p = p <|> eps
+
+cat :: Monoid a => [Parser a] -> Parser a
+cat = foldr op eps
+    where
+        op p q = (<>) <$> p <*> q
+
+many :: Monoid a => Parser a -> Parser a
+many p = cat [p, many p] <|> eps
