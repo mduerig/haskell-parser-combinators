@@ -77,7 +77,7 @@ char predicate = do
 literal :: String -> Parser String
 literal = foldr op (success "")
     where
-        op pc ps = (:) <$> char (== pc) <*> ps
+        op c ps = (:) <$> char (== c) <*> ps
 
 eps :: Monoid a => Parser a
 eps = success mempty
