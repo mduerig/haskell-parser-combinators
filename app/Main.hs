@@ -3,4 +3,4 @@ module Main where
 import Hpc
 
 main :: IO ()
-main = someFunc
+main = putStrLn "Nothing here"

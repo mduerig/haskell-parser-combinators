@@ -6,9 +6,6 @@ import Control.Applicative (Applicative, Alternative, empty, (<|>))
 import Control.Monad ((>=>))
 import GHC.Base (Semigroup)
 
-someFunc :: IO ()
-someFunc = putStrLn "someFunc"
-
 data ParseResult a =
     ParseResult (Either ParseError a) String
     deriving Show
