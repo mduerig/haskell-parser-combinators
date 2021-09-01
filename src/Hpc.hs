@@ -39,12 +39,6 @@ instance Applicative Parser where
     in
         ParseResult (rf <*> ra) s''
 
-instance Monad Parser where
-  pa >>= f = Parser $ \s ->
-    case parse pa s of
-        ParseResult (Right x) s' -> parse (f x) s'
-        ParseResult (Left  e) s' -> ParseResult (Left e) s'
-
 instance Alternative Parser where
   empty = failure UnexpectedInput
   p1 <|> p2 = Parser $ parse p1 <> parse p2
@@ -68,11 +62,10 @@ anyChar = Parser $
         ""   -> ParseResult (Left PrematureEOF) ""
 
 char :: (Char -> Bool) -> Parser Char
-char predicate = do
-  c <- anyChar
-  if predicate c
-    then return c
-    else failure UnexpectedInput
+char predicate = Parser $
+    \case
+        (c:cs) | predicate c -> ParseResult (Right c) cs
+        cs                   -> ParseResult (Left UnexpectedInput) cs
 
 literal :: String -> Parser String
 literal = foldr op (success "")
@@ -92,3 +85,21 @@ cat = foldr op eps
 
 many :: Monoid a => Parser a -> Parser a
 many p = cat [p, many p] <|> eps
+
+anyOf :: Parser a -> [Parser a] -> Parser a
+anyOf = foldr (<|>)
+
+toString :: a -> [a]
+toString = (:[])
+
+digit :: Parser String
+digit = anyOf (literal "0") (literal . toString <$> ['1'..'9'])
+
+integer :: Parser Integer
+integer = read <$> cat [digit, many digit]
+
+chars :: (Char -> Bool) -> Parser String
+chars predicate = many (toString <$> char predicate)
+
+string :: Parser String
+string = cat [literal "\"", chars (/= '"'), literal "\""]
