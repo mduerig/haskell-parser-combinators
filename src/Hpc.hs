@@ -2,6 +2,7 @@
 
 module Hpc where
 
+import Data.Foldable (asum)
 import Control.Applicative (Applicative, Alternative, empty, (<|>), many, some)
 import Control.Monad ((>=>))
 import GHC.Base (Semigroup)
@@ -80,14 +81,11 @@ cat = foldr op eps
     where
         op p q = (<>) <$> p <*> q
 
-anyOf :: Parser a -> [Parser a] -> Parser a
-anyOf = foldr (<|>)
-
 toString :: a -> [a]
 toString = (:[])
 
 digit :: Parser String
-digit = anyOf (literal "0") (literal . toString <$> ['1'..'9'])
+digit = asum (literal . toString <$> ['0'..'9'])
 
 integer :: Parser Integer
 integer = read <$> (mconcat <$> some digit)
