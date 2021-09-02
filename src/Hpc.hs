@@ -2,7 +2,7 @@
 
 module Hpc where
 
-import Control.Applicative (Applicative, Alternative, empty, (<|>))
+import Control.Applicative (Applicative, Alternative, empty, (<|>), many, some)
 import Control.Monad ((>=>))
 import GHC.Base (Semigroup)
 
@@ -55,17 +55,14 @@ eof = Parser $
         "" -> ParseResult (Right ()) ""
         _  -> ParseResult (Left ExpectedEOF) ""
 
-anyChar :: Parser Char
-anyChar = Parser $
-    \case
-        c:cs -> ParseResult (Right c) cs
-        ""   -> ParseResult (Left PrematureEOF) ""
-
 char :: (Char -> Bool) -> Parser Char
 char predicate = Parser $
     \case
         (c:cs) | predicate c -> ParseResult (Right c) cs
         cs                   -> ParseResult (Left UnexpectedInput) cs
+
+anyChar :: Parser Char
+anyChar = char (const True)
 
 literal :: String -> Parser String
 literal = foldr op (success "")
@@ -83,9 +80,6 @@ cat = foldr op eps
     where
         op p q = (<>) <$> p <*> q
 
-many :: Monoid a => Parser a -> Parser a
-many p = cat [p, many p] <|> eps
-
 anyOf :: Parser a -> [Parser a] -> Parser a
 anyOf = foldr (<|>)
 
@@ -96,10 +90,10 @@ digit :: Parser String
 digit = anyOf (literal "0") (literal . toString <$> ['1'..'9'])
 
 integer :: Parser Integer
-integer = read <$> cat [digit, many digit]
+integer = read <$> (mconcat <$> some digit)
 
 chars :: (Char -> Bool) -> Parser String
-chars predicate = many (toString <$> char predicate)
+chars predicate = mconcat <$> many (toString <$> char predicate)
 
 string :: Parser String
 string = cat [literal "\"", chars (/= '"'), literal "\""]
