@@ -4,7 +4,6 @@ module Hpc where
 
 import Data.Foldable (asum)
 import Control.Applicative (Applicative, Alternative, empty, (<|>), many, some)
-import Control.Monad ((>=>))
 import GHC.Base (Semigroup)
 
 data ParseResult a =
@@ -70,17 +69,6 @@ literal = foldr op (success "")
     where
         op c ps = (:) <$> char (== c) <*> ps
 
-eps :: Monoid a => Parser a
-eps = success mempty
-
-optional :: Monoid a => Parser a -> Parser a
-optional p = p <|> eps
-
-cat :: Monoid a => [Parser a] -> Parser a
-cat = foldr op eps
-    where
-        op p q = (<>) <$> p <*> q
-
 toString :: a -> [a]
 toString = (:[])
 
@@ -94,4 +82,4 @@ chars :: (Char -> Bool) -> Parser String
 chars predicate = mconcat <$> many (toString <$> char predicate)
 
 string :: Parser String
-string = cat [literal "\"", chars (/= '"'), literal "\""]
+string = literal "\"" *> chars (/= '"') <* literal "\""
