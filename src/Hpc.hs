@@ -83,3 +83,7 @@ chars predicate = mconcat <$> many (toString <$> char predicate)
 
 string :: Parser String
 string = literal "\"" *> chars (/= '"') <* literal "\""
+
+separated :: Parser a -> Parser b -> Parser [a]
+separated parser separator =
+    (:) <$> parser <*> many (separator *> parser)
