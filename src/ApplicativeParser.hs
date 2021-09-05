@@ -1,8 +1,9 @@
 {-# LANGUAGE LambdaCase #-}
 
-module Hpc where
+module ApplicativeParser where
 
 import Data.Foldable (asum)
+import Data.Functor (($>))
 import Control.Applicative (Applicative, Alternative, empty, (<|>), many, some)
 import GHC.Base (Semigroup)
 
@@ -87,3 +88,49 @@ string = literal "\"" *> chars (/= '"') <* literal "\""
 separated :: Parser a -> Parser b -> Parser [a]
 separated parser separator =
     (:) <$> parser <*> many (separator *> parser)
+
+
+data JsonValue
+    = JsonString String
+    | JsonNumber Integer
+    | JsonObject [(String, JsonValue)]
+    | JsonArray [JsonValue]
+    | JsonBool Bool
+    | JsonNull
+    deriving Show
+
+jsonNull :: Parser JsonValue
+jsonNull = literal "null" $> JsonNull
+
+jsonBool :: Parser JsonValue
+jsonBool = literal "true" $> JsonBool True
+       <|> literal "false" $> JsonBool False
+
+jsonNumber :: Parser JsonValue
+jsonNumber = JsonNumber <$> integer
+
+jsonString :: Parser JsonValue
+jsonString = JsonString <$> string
+
+jsonArray :: Parser JsonValue
+jsonArray =
+    let
+        values = JsonArray <$> separated jsonValue (literal ",")
+    in
+        literal "[" *> values <* literal "]"
+
+jsonObject :: Parser JsonValue
+jsonObject =
+    let
+        binding = (,) <$> (string <* literal "=") <*> jsonValue
+        bindings = separated binding (literal ",")
+    in
+        JsonObject <$> (literal "{" *> bindings <* literal "}")
+
+jsonValue :: Parser JsonValue
+jsonValue = jsonString
+        <|> jsonNumber
+        <|> jsonObject
+        <|> jsonArray
+        <|> jsonBool
+        <|> jsonNull

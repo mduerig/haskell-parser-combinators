@@ -20,7 +20,7 @@ source-repository head
 
 library
   exposed-modules:
-      Hpc
+      ApplicativeParser
   other-modules:
       Paths_hpc
   hs-source-dirs:
