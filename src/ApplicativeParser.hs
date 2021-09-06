@@ -5,7 +5,6 @@ module ApplicativeParser where
 import Data.Foldable (asum)
 import Data.Functor (($>))
 import Control.Applicative (Applicative, Alternative, empty, (<|>), many, some)
-import GHC.Base (Semigroup)
 
 data ParseResult a =
     ParseResult (Either ParseError a) String
@@ -88,6 +87,7 @@ string = literal "\"" *> chars (/= '"') <* literal "\""
 separated :: Parser a -> Parser b -> Parser [a]
 separated parser separator =
     (:) <$> parser <*> many (separator *> parser)
+    <|> success []
 
 
 data JsonValue
