@@ -5,6 +5,7 @@ module ApplicativeParser where
 import Data.Foldable (asum)
 import Data.Functor (($>))
 import Control.Applicative (Applicative, Alternative, empty, (<|>), many, some)
+import Data.Char
 
 data ParseResult a =
     ParseResult (Either ParseError a) String
@@ -73,7 +74,7 @@ toString :: a -> [a]
 toString = (:[])
 
 digit :: Parser String
-digit = asum (literal . toString <$> ['0'..'9'])
+digit = toString <$> char isDigit
 
 integer :: Parser Integer
 integer = read <$> (mconcat <$> some digit)
