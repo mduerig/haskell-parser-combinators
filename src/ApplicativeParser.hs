@@ -14,6 +14,7 @@ data ParseResult a =
 data ParseError
     = PrematureEOF
     | ExpectedEOF
+    | UnexpectedEOF
     | UnexpectedInput
     deriving Show
 
@@ -56,14 +57,25 @@ eof = Parser $
         "" -> ParseResult (Right ()) ""
         _  -> ParseResult (Left ExpectedEOF) ""
 
-char :: (Char -> Bool) -> Parser Char
-char predicate = Parser $
-    \case
-        (c:cs) | predicate c -> ParseResult (Right c) cs
-        cs                   -> ParseResult (Left UnexpectedInput) cs
-
 anyChar :: Parser Char
-anyChar = char (const True)
+anyChar = Parser $
+    \case
+        (c:cs) -> ParseResult (Right c) cs
+        _      -> ParseResult (Left UnexpectedEOF) ""
+
+filterP :: (a -> Bool) -> Parser a -> Parser a
+filterP predicate parser = Parser $
+    \input ->
+        case parse parser input of
+            ParseResult (Right result) s
+                 | predicate result
+                -> ParseResult (Right result) s
+            _
+                -> ParseResult (Left UnexpectedInput) input
+
+
+char :: (Char -> Bool) -> Parser Char
+char = flip filterP anyChar
 
 literal :: String -> Parser String
 literal = foldr op (success "")
