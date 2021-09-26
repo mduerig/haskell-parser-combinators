@@ -2,10 +2,10 @@
 
 module ApplicativeParser where
 
-import Data.Foldable (asum)
-import Data.Functor (($>))
-import Control.Applicative (Applicative, Alternative, empty, (<|>), many, some)
-import Data.Char
+import Data.Foldable ()
+import Data.Functor ( ($>) )
+import Control.Applicative ( Alternative(..) )
+import Data.Char ( isDigit )
 
 data ParseResult a =
     ParseResult (Either ParseError a) String
